@@ -100,7 +100,7 @@ def results():
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
-
+            
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df)
@@ -109,6 +109,7 @@ def results():
             # If GET request, show all data without filters
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
+            df = convert_to_number(df)
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df)
     return redirect('/')
@@ -120,6 +121,7 @@ def see_all():
         df = df_global.copy()
         df = sum_and_format_numbers(df, 'Any invoices/receipts?')
         df = format_currency(df)
+        df = convert_to_number(df)
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
