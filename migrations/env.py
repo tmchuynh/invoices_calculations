@@ -6,10 +6,6 @@ import os
 
 from alembic import context
 
-from flask_app.models.base_model import Base
-from flask_app.models.author_model import Author
-from flask_app.models.book_model import Book
-
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
