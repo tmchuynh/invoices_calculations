@@ -32,6 +32,10 @@ def create_app():
             
     app.get_session = get_session
     
+    with app.app_context():
+        from .models import User
+        db.create_all()
+    
     # Register blueprints
     from flask_app.controllers.general_controller import bp as general_bp
     
