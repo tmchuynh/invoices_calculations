@@ -1,62 +1,22 @@
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, jsonify
-from flask_app import db
-import flask_excel as excel
-import re, os
+from flask import Flask, request, render_template
+import pandas as pd
 
-from flask_app.models.author_model import Author
-from flask_app.models.book_model import Book
+app = Flask(__name__)
 
-bp = Blueprint('general', __name__)
+def read_excel(file):
+    df = pd.read_excel(file, engine='openpyxl')
+    return df
 
-@bp.route("/import", methods=['GET', 'POST'])
-def doimport():
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
     if request.method == 'POST':
-        def author_init_func(row):
-            c = Author(row['username'])
-            c.email = row['email']
-            c.id = row['id']
-            return c
+        file = request.files['file']
+        if file:
+            df = read_excel(file)
+            # Convert DataFrame to HTML table
+            table_html = df.to_html(classes='table table-striped')
+            return render_template('results.html', table_html=table_html)
+    return render_template('upload.html')
 
-        def book_init_func(row):
-            c = Author.query.filter_by(name=row['author']).first()
-            p = Book(row['title'], row['published'], c)
-            return p
-        request.save_book_to_database(
-            field_name='file', session=db.session,
-            tables=[Book, Author],
-            initializers=[book_init_func, author_init_func])
-        return redirect(url_for('.handson_table'), code=302)
-    return '''
-    <!doctype html>
-    <title>Upload an excel file</title>
-    <h1>Excel file upload (xls, xlsx, ods please)</h1>
-    <form action="/handson_view" method=author enctype=multipart/form-data><p>
-    <input type=file name=file><input type=submit value=Upload>
-    </form>
-    '''
-
-
-@bp.route("/download", methods=['GET'])
-def download_file():
-    return excel.make_response_from_array([[1, 2], [3, 4]], "csv")
-
-@bp.route("/export", methods=['GET'])
-def doexport():
-    return excel.make_response_from_tables(db.session, [Author, Book], "xls")
-
-@bp.route("/handson_view", methods=['GET'])
-def handson_table():
-    return excel.make_response_from_tables(
-        db.session, [Author, Book], 'handsontable.html')
-    
-@bp.route("/custom_export", methods=['GET'])
-def docustomexport():
-    query_sets = Category.query.filter_by(id=1).all()
-    column_names = ['author', 'title']
-    return excel.make_response_from_query_sets(query_sets, column_names, "xls")
-
-
-# insert database related code here
-if __name__ == "__main__":
-    excel.init_excel(app)
-    app.run()
+if __name__ == '__main__':
+    app.run(debug=True)
