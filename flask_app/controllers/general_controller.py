@@ -18,7 +18,7 @@ def doimport():
 
         def book_init_func(row):
             c = Author.query.filter_by(name=row['author']).first()
-            p = Book(row['title'], c)
+            p = Book(row['title'], row['published'], c)
             return p
         request.save_book_to_database(
             field_name='file', session=db.session,
