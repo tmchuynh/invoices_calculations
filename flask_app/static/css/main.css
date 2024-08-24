@@ -3,3 +3,14 @@
     color: white;
     font-weight: bold;
 }
+
+.yellow-background {
+    background-color: yellow !important;
+    color: black;
+    font-weight: bold;
+}
+
+.text-center {
+    text-align: center !important;
+    align-content: center;
+}
