@@ -49,8 +49,10 @@ def format_currency(df):
     currency_columns = ['Total $$ for the month', 'Did you work on any side projects?']
     for col in currency_columns:
         if col in df.columns:
-            df.loc[:, col] = pd.to_numeric(df[col], errors='coerce')
-            df.loc[:, col] = df[col].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "")
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            print(df[col])
+            df[col] = df[col].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "")
+            print(df[col])
     return df
 
 def sum_and_format_numbers(df, column_name):
@@ -86,17 +88,19 @@ def results():
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
+            print(df['Total $$ for the month'])
+            
 
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-            return render_template('results.html', table_html=table_html, df_global=df_global)
+            return render_template('results.html', table_html=table_html, df_global=df)
 
         elif request.method == 'GET':
             # If GET request, show all data without filters
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-            return render_template('results.html', table_html=table_html, df_global=df_global)
+            return render_template('results.html', table_html=table_html, df_global=df)
     return redirect('/')
 
 @bp.route('/see_all', methods=['GET'])
@@ -109,6 +113,6 @@ def see_all():
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-        return render_template('results.html', table_html=table_html, df_global=df_global)
+        return render_template('results.html', table_html=table_html, df_global=df)
     return redirect('/')
 
