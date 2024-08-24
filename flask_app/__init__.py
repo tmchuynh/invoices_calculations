@@ -14,7 +14,6 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__, static_folder='static', template_folder='templates')
-    app.config.from_object(Config)
 
     # Configure the SQLAlchemy part of the app
     db_url = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
@@ -33,7 +32,7 @@ def create_app():
     app.get_session = get_session
     
     with app.app_context():
-        from .models import User
+        from .models import Author, Book
         db.create_all()
     
     # Register blueprints

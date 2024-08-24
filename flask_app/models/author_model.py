@@ -1,4 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column
+from flask_app.models.base_model import Base
+from sqlalchemy import String, DateTime, func, PrimaryKeyConstraint, ForeignKey
+
 
 class Author(Base):
     __tablename__ = 'authors'
