@@ -11,7 +11,6 @@ load_dotenv()  # Load environment variables
 
 db = SQLAlchemy()
 
-
 def create_app():
     app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -30,10 +29,6 @@ def create_app():
         return db.session
             
     app.get_session = get_session
-    
-    with app.app_context():
-        from .models import Author, Book
-        db.create_all()
     
     # Register blueprints
     from flask_app.controllers.general_controller import bp as general_bp
