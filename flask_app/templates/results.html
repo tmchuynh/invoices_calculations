@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h1 class="my-4">Filtered Excel File Data</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <form action="/results" method="post" enctype="multipart/form-data">
             <label for="month">Select Month:</label>
             <select name="month" id="month">
                 <option value="0" selected>No Month Filter</option>
@@ -34,11 +34,11 @@
             <input type="text" name="name" id="name" value="{{ request.form.get('name', '') }}">
             <br><br>
             <input type="submit" value="Apply Filters">
-            <input type="hidden" name="upload" value="true"> <!-- To indicate this is a filter change -->
         </form>
+
         <br>
         <!-- Button to see all data -->
-        <form action="/see_all" method="post">
+        <form action="/see_all" method="get">
             <input type="submit" value="See All" class="btn btn-primary">
         </form>
         <br>
