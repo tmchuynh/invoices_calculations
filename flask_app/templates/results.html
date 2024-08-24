@@ -4,6 +4,7 @@
 <head>
     <title>Excel File Results</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
 </head>
 
 <body>
@@ -55,9 +56,12 @@
                 <tr>
                     {% for value in row %}
                     {% if loop.index == 4 %}
-                    <td class="text-primary text-center">{{ value }}</td>
+                    <td class="text-success text-center">{{ value }}</td>
+                    {% elif loop.index == 5 %}
+                    <td class="text-primary text-center">{{ value }} </td>
                     {% elif loop.index == 3 %}
                     <td class="text-capitalize text-center">{{ value }} </td>
+
                     {% else %}
                     <td class="text-center">{{ value }}</td>
                     {% endif %}

@@ -15,12 +15,15 @@ def upload():
         if 'file' in request.files:
             file = request.files['file']
             if file:
-                df = read_excel(file)
+                try:
+                    df = read_excel(file)
+                except Exception as e:
+                    return render_template('upload.html', error=f"Error processing file: {str(e)}")
+
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('')
                 df.insert(3, 'Calculated Total Amount', '300')
 
-                # Store the DataFrame in the global variable
                 global df_global
                 df_global = df
                 
@@ -29,11 +32,13 @@ def upload():
 
 def read_excel(file):
     df = pd.read_excel(file, engine='openpyxl', dtype=str)
-    # df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%b %d %y %H:%M:%S')
     df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
 
     # Reformat the 'Timestamp' column to the desired format
     df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
+    
+    df = convert_to_number(df)
+
     return df
 
 def filter_by_month(df, timestamp_column, month):
@@ -45,14 +50,21 @@ def filter_by_column(df, column_name, value):
         return df[df[column_name].str.contains(value, case=False, na=False)]
     return df
 
+def convert_to_number(df):
+    column_indices = [5, 6, 9, 10, 11, 12, 13, 14, 15, 16]
+    # Convert the specified columns to numeric
+    for col in column_indices:
+        # Access the column by its index and convert to numeric
+        df[df.columns[col]] = pd.to_numeric(df.iloc[:, col], errors='coerce')
+        df[df.columns[col]] = df[df.columns[col]].fillna(0).astype('Int64')
+    return df
+
 def format_currency(df):
-    currency_columns = ['Total $$ for the month', 'Did you work on any side projects?']
+    currency_columns = ['Total $$ for the month', 'Did you work on any side projects?', 'Calculated Total Amount']
     for col in currency_columns:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            print(df[col])
             df[col] = df[col].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "")
-            print(df[col])
     return df
 
 def sum_and_format_numbers(df, column_name):
@@ -88,8 +100,6 @@ def results():
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
-            print(df['Total $$ for the month'])
-            
 
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
