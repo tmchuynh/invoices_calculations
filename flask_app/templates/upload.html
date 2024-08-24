@@ -9,7 +9,8 @@
     <h1>Upload an Excel File</h1>
     <form action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".xlsx">
-        <label for="month">Select Month:</label>
+        <br><br>
+        <label for="month">Filter by Month:</label>
         <select name="month" id="month">
             <option value="1">January</option>
             <option value="2">February</option>
@@ -24,6 +25,13 @@
             <option value="11">November</option>
             <option value="12">December</option>
         </select>
+        <br><br>
+        <label for="email">Filter by Email:</label>
+        <input type="text" name="email" id="email">
+        <br><br>
+        <label for="name">Filter by Name:</label>
+        <input type="text" name="name" id="name">
+        <br><br>
         <input type="submit" value="Upload and Filter">
     </form>
 </body>
