@@ -4,3 +4,5 @@
 /.mypy_cache
 /*/__pycache__
 /*/*/__pycache__
+/excel_file_experiment.mwb
+/flask_excel.mwb

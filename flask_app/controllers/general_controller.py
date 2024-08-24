@@ -3,9 +3,10 @@ from flask_app import db
 import flask_excel as excel
 import re, os
 
-bp = Blueprint('general', __name__)
+from flask_app.models.author_model import Author
+from flask_app.models.book_model import Book
 
-Session = sessionmaker(bind=engine)
+bp = Blueprint('general', __name__)
 
 @bp.route("/import", methods=['GET', 'POST'])
 def doimport():
@@ -29,7 +30,7 @@ def doimport():
     <!doctype html>
     <title>Upload an excel file</title>
     <h1>Excel file upload (xls, xlsx, ods please)</h1>
-    <form action="" method=author enctype=multipart/form-data><p>
+    <form action="/handson_view" method=author enctype=multipart/form-data><p>
     <input type=file name=file><input type=submit value=Upload>
     </form>
     '''
