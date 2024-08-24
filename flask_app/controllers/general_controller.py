@@ -66,8 +66,11 @@ def upload_file():
         if 'file' in request.files:
             file = request.files['file']
             month = int(request.form.get('month', 0))  # Default to 0 (no filter)
-            email_filter = request.form.get('email', '')
-            name_filter = request.form.get('name', '')
+            email_filter = request.form.get('email', '').strip()
+            name_filter = request.form.get('name', '').strip()
+            # Check if no filters are applied
+            if month == 0 and not email_filter and not name_filter:
+                return redirect(request.url)  # Refresh the page
             if file:
                 df = read_excel(file)
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
@@ -83,7 +86,7 @@ def upload_file():
                 if name_filter:
                     df = filter_by_column(df, 'Full Name', name_filter)
                 
-                df = sum_and_format_numbers(df, 'YourColumnName')  # Replace with actual column name
+                df = sum_and_format_numbers(df, 'Any invoices/receipts?') 
                 df = format_currency(df)
                 table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
                 return render_template('results.html', table_html=table_html, month=month, email=email_filter, name=name_filter)
