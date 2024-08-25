@@ -1,8 +1,8 @@
 from flask import Flask, request, render_template, Blueprint, redirect
-import pandas as pd
 import re
-import xlwt
+import pandas as pd
 import numpy as np
+import matplotlib as mpl
 
 # Create a Blueprint
 bp = Blueprint('general', __name__)

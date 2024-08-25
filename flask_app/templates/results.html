@@ -56,21 +56,7 @@
                     {% for row in df_global.itertuples(index=False) %}
                     <tr>
                         {% for value in row %}
-                        {% if loop.index == 3 %}
-                        <td class="text-capitalize text-center">{{ value }}</td>
-                        {% elif loop.index == 4 %}
-                        <td class="text-success text-center">{{ value }}</td>
-                        {% elif loop.index == 5 %}
-                        <td class="text-primary text-center">{{ value }}</td>
-                        {% elif loop.index == 7 %}
-                        {% if value > 0 %}
-                        <td class="text-center yellow-background">{{ value }}</td>
-                        {% else %}
                         <td class="text-center">{{ value }}</td>
-                        {% endif %}
-                        {% else %}
-                        <td class="text-center">{{ value }}</td>
-                        {% endif %}
                         {% endfor %}
                     </tr>
                     {% endfor %}
