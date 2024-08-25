@@ -69,8 +69,10 @@ def format_currency(df):
     for col in currency_columns:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
-            df[col] = df[col].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "")
-            df[col] = df[col].replace('', '$0.00').fillna('$0.00')
+            df[col] = df[col].replace('', '0.00').fillna('0.00').astype('float')
+            df[col + '_formatted'] = df[col].apply(lambda x: f"${x:,.2f}")
+            
+    
             
     return df
 
