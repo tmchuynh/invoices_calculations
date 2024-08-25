@@ -21,6 +21,12 @@ def read_excel(file):
     for index in range(0, len(df)):
         df = addition(df, index)
         
+    df = convert_to_number(df)
+    
+        
+    total_classes = df.pop('Total # of Classes')
+    df.insert(8, 'Total # of Classes', total_classes)
+        
     return df
 
 
@@ -46,7 +52,7 @@ def addition(df, row_index):
         total += value
         
     # Update the 'Total # of Classes' column for the current row
-    df.loc[row_index].at['Total # of Classes'] = total
+    df.at[row_index, 'Total # of Classes'] = total
     
     return df
 
@@ -101,17 +107,12 @@ def upload():
                 print(file)
                 try:
                     df = read_excel(file)
-                    print(df)
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('')
                 df.insert(3, 'Calculated Total Amount', '')
-                df.insert(9, 'Total # of Classes', '')
-                
-                df = convert_to_number(df)
-                
 
                 global df_global
                 df_global = df
@@ -131,10 +132,6 @@ def results():
         email_filter = request.form.get('email', '').strip()
         name_filter = request.form.get('name', '').strip()
         
-        
-        # # Iterate over each row, starting from the second row
-        # for index in range(0, len(df)):
-        #     df = addition(df, index)
 
         if request.method == 'POST':
             # Apply filters if provided
@@ -146,7 +143,6 @@ def results():
                 df = filter_by_column(df, 'Full Name', name_filter)
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
-            df = convert_to_number(df)
             df = format_currency(df)
             
             # Convert to HTML table
@@ -157,7 +153,6 @@ def results():
             # If GET request, show all data without filters
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
-            df = convert_to_number(df)
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df)
@@ -171,8 +166,6 @@ def see_all():
         df = df_global.copy()
         df = sum_and_format_numbers(df, 'Any invoices/receipts?')
         df = format_currency(df)
-        df = convert_to_number(df)
-        
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
