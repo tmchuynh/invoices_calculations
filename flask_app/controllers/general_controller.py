@@ -12,14 +12,15 @@ df_global = None
 def read_excel(file):
     df = pd.read_excel(file, engine='openpyxl', dtype=str)
     df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
+    
 
     # Reformat the 'Timestamp' column to the desired format
     df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
     
-    df = convert_to_number(df)
-    
+    # Iterate over each row, starting from the second row
+    for index in range(0, len(df)):
+        df = addition(df, index)
         
-
     return df
 
 
@@ -43,15 +44,15 @@ def addition(df, row_index):
         if pd.isna(value):
             value = 0
         total += value
-
+        
     # Update the 'Total # of Classes' column for the current row
-    df.at[row_index, 'Total # of Classes'] = total
+    df.loc[row_index].at['Total # of Classes'] = total
     
     return df
 
 def convert_to_number(df):
     column_indices = [5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-
+    
     # Convert the specified columns to numeric
     for col in column_indices:
         # Access the column by its index and convert to numeric
@@ -95,9 +96,12 @@ def upload():
         
         if 'file' in request.files:
             file = request.files['file']
+            print(file)
             if file:
+                print(file)
                 try:
                     df = read_excel(file)
+                    print(df)
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
@@ -105,6 +109,8 @@ def upload():
                 df = df.fillna('')
                 df.insert(3, 'Calculated Total Amount', '')
                 df.insert(9, 'Total # of Classes', '')
+                
+                df = convert_to_number(df)
                 
 
                 global df_global
@@ -125,9 +131,10 @@ def results():
         email_filter = request.form.get('email', '').strip()
         name_filter = request.form.get('name', '').strip()
         
-        # Iterate over each row, starting from the second row
-        for index in range(0, len(df)):
-            df = addition(df, index)
+        
+        # # Iterate over each row, starting from the second row
+        # for index in range(0, len(df)):
+        #     df = addition(df, index)
 
         if request.method == 'POST':
             # Apply filters if provided
