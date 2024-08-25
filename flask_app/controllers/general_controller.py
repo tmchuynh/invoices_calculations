@@ -35,10 +35,6 @@ def filter_by_column(df, column_name, value):
 
 
 def addition(df, row_index):
-    # Define the columns to calculate totals for
-    column_indices = [11, 12, 13, 14, 15, 16]
-    print(len(df))
-
     # Calculate the total for the current row across the specified columns
     total = 0
     for col in range(9, len(df.columns)):
@@ -54,8 +50,8 @@ def addition(df, row_index):
     return df
 
 def convert_to_number(df):
-    column_indices = [5, 6, 9, 10, 11, 12, 13, 14, 15, 16]
-    
+    column_indices = [5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
     # Convert the specified columns to numeric
     for col in column_indices:
         # Access the column by its index and convert to numeric
@@ -86,7 +82,7 @@ def sum_and_format_numbers(df, column_name):
     # Check if the specified column exists
     if column_name in df.columns:
         # Apply extraction and summing function
-        df[column_name] = df[column_name].apply(lambda x: extract_and_sum_numbers(x))
+        df[column_name] = df[column_name].map(lambda x: extract_and_sum_numbers(x))
         
         # Convert the column to numeric and format as currency
         df[column_name] = pd.to_numeric(df[column_name], errors='coerce').apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "")
@@ -96,6 +92,7 @@ def sum_and_format_numbers(df, column_name):
 @bp.route('/', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
+        
         if 'file' in request.files:
             file = request.files['file']
             if file:
@@ -106,7 +103,7 @@ def upload():
 
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('')
-                df.insert(3, 'Calculated Total Amount', '300')
+                df.insert(3, 'Calculated Total Amount', '')
                 df.insert(9, 'Total # of Classes', '')
                 
 
