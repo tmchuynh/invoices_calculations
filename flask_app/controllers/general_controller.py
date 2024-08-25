@@ -17,6 +17,8 @@ def read_excel(file):
     df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
     
     df = convert_to_number(df)
+    
+        
 
     return df
 
@@ -25,23 +27,41 @@ def filter_by_month(df, column_name, month):
     df[column_name] = pd.to_datetime(df[column_name], format='%b %d %y %I:%M:%S %p')
     return df[df[column_name].dt.month == month]
 
+
 def filter_by_column(df, column_name, value):
     if column_name in df.columns:
         return df[df[column_name].str.contains(value, case=False, na=False)]
     return df
 
 
-def addition(df, column_name):
-    
+def addition(df, row_index):
+    # Define the columns to calculate totals for
+    column_indices = [11, 12, 13, 14, 15, 16]
+    print(len(df))
 
+    # Calculate the total for the current row across the specified columns
+    total = 0
+    for col in range(9, len(df.columns)):
+        col_name = df.columns[col]
+        value = pd.to_numeric(df.at[row_index, col_name], errors='coerce')
+        if pd.isna(value):
+            value = 0
+        total += value
+
+    # Update the 'Total # of Classes' column for the current row
+    df.at[row_index, 'Total # of Classes'] = total
+    
+    return df
 
 def convert_to_number(df):
     column_indices = [5, 6, 9, 10, 11, 12, 13, 14, 15, 16]
+    
     # Convert the specified columns to numeric
     for col in column_indices:
         # Access the column by its index and convert to numeric
         df[df.columns[col]] = pd.to_numeric(df.iloc[:, col], errors='coerce')
         df[df.columns[col]] = df[df.columns[col]].fillna(0).astype('Int64')
+    
     return df
 
 
@@ -88,7 +108,6 @@ def upload():
                 df = df.fillna('')
                 df.insert(3, 'Calculated Total Amount', '300')
                 df.insert(9, 'Total # of Classes', '')
-                # df.insert(9, 'Receipt Expenses', ' ')
                 
 
                 global df_global
@@ -108,6 +127,10 @@ def results():
         month = int(request.form.get('month', 0))
         email_filter = request.form.get('email', '').strip()
         name_filter = request.form.get('name', '').strip()
+        
+        # Iterate over each row, starting from the second row
+        for index in range(0, len(df)):
+            df = addition(df, index)
 
         if request.method == 'POST':
             # Apply filters if provided
@@ -131,6 +154,7 @@ def results():
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
             df = convert_to_number(df)
+            
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df)
     return redirect('/')
@@ -144,6 +168,7 @@ def see_all():
         df = sum_and_format_numbers(df, 'Any invoices/receipts?')
         df = format_currency(df)
         df = convert_to_number(df)
+        
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
