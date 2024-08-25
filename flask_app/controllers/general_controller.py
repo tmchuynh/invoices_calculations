@@ -12,7 +12,6 @@ df_global = None
 def read_excel(file):
     df = pd.read_excel(file, engine='openpyxl', dtype=str)
     df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
-    
 
     # Reformat the 'Timestamp' column to the desired format
     df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
@@ -20,9 +19,6 @@ def read_excel(file):
     # Iterate over each row, starting from the second row
     for index in range(0, len(df)):
         df = addition(df, index)
-        
-    df = convert_to_number(df)
-    
         
     total_classes = df.pop('Total # of Classes')
     df.insert(8, 'Total # of Classes', total_classes)
@@ -74,6 +70,8 @@ def format_currency(df):
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
             df[col] = df[col].apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "")
+            df[col] = df[col].replace('', '$0.00').fillna('$0.00')
+            
     return df
 
 
@@ -102,16 +100,15 @@ def upload():
         
         if 'file' in request.files:
             file = request.files['file']
-            print(file)
             if file:
-                print(file)
                 try:
                     df = read_excel(file)
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
-                df = df.fillna('')
+                df = df.fillna('0')
+                
                 df.insert(3, 'Calculated Total Amount', '')
 
                 global df_global
@@ -126,6 +123,8 @@ def results():
     global df_global
     if df_global is not None:
         df = df_global.copy()
+        
+        print(df.itertuples)
 
         # Check if filters are applied
         month = int(request.form.get('month', 0))
@@ -144,6 +143,7 @@ def results():
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
+            df = convert_to_number(df)
             
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
@@ -153,6 +153,7 @@ def results():
             # If GET request, show all data without filters
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
+            df = convert_to_number(df)
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df)
