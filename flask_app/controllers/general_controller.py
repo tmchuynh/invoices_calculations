@@ -198,17 +198,20 @@ def calculate_classes(df):
 
 
 def refresh(df):
-    df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
+    if 'Timestamp' in df.columns:
+        df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
 
-    # Reformat the 'Timestamp' column to the desired format
-    df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
+        # Reformat the 'Timestamp' column to the desired format
+        df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
+    else:
+        df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d %H:%M:%S')
+
+        # Reformat the 'Date' column to the desired format
+        df['Date'] = df['Date'].dt.strftime('%b %d %y %I:%M:%S %p')
     
     # Iterate over each row, starting from the second row
     for index in range(0, len(df)):
         df = addition(df, index)
-        
-    total_classes = df.pop('Total # of Classes')
-    df.insert(8, 'Total # of Classes', total_classes)
     
     return df
 
@@ -226,6 +229,8 @@ def upload():
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
                 df = refresh(df)
+                total_classes = df.pop('Total # of Classes')
+                df.insert(8, 'Total # of Classes', total_classes)
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('0')
                 df.insert(3, 'Rate', 0)
@@ -249,11 +254,13 @@ def results():
         month = int(request.form.get('month', 0))
         email_filter = request.form.get('email', '').strip()
         name_filter = request.form.get('name', '').strip()
+        
+        df = rename_columns(df)
 
         if request.method == 'POST':
             # Apply filters if provided
-            if month != 0 and 'Timestamp' in df.columns:
-                df = filter_by_month(df, 'Timestamp', month)
+            if month != 0 and 'Date' in df.columns:
+                df = filter_by_month(df, 'Date', month)
                 df = refresh(df)
                 
             if email_filter:
@@ -262,7 +269,6 @@ def results():
                 df = filter_by_column(df, 'Full Name', name_filter)
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
-            df = rename_columns(df)
             df = convert_to_number(df)
             df = calculate_total(df)
             numbers_df = df.copy()
@@ -275,7 +281,6 @@ def results():
         elif request.method == 'GET':
             # If GET request, show all data without filters
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
-            df = rename_columns(df)
             df = convert_to_number(df)
             df = calculate_total(df)
             numbers_df = df.copy()
