@@ -38,56 +38,81 @@
         </form>
 
         <br>
-        <!-- Button to see all data -->
         <form action="/see_all" method="get">
             <input type="submit" value="See All" class="btn btn-primary">
         </form>
         <br>
         <div class="container-fluid">
-            <table class="table table-striped table-bordered p-5 m-4">
-                <thead class="w-100">
-                    <tr>
-                        {% for col in df_global.columns %}
-                        <th class="text-center text-capitalize">{{ col }}</th>
+            <div class="table-responsive-md">
+                <table class="table table-hover table-striped table-bordered">
+                    <thead class="w-100">
+                        <tr>
+                            {% for col in df_global.columns %}
+                            <th class="text-center text-capitalize">{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        {% for row, display_row in zip(numbers_df.itertuples(index=False),
+                        df_global.itertuples(index=False)) %}
+                        <tr>
+                            {% for value, display_value in zip(row, display_row) %}
+                            {% if loop.index == 3 %}
+                            <td class="text-capitalize text-center">{{ display_value }}</td>
+                            {% elif loop.index == 4 %}
+                            <td class="text-success text-center">{{ display_value }}</td>
+                            {% elif loop.index == 5 %}
+                            {% if value > 1200 %}
+                            <td class="text-center text-danger bold">{{ display_value }}</td>
+                            {% else %}
+                            <td class="text-center">{{ display_value }}</td>
+                            {% endif %}
+                            {% elif loop.index == 6 %}
+                            {% if value > 1200 %}
+                            <td class="text-center text-warning bold">{{ display_value }}</td>
+                            {% else %}
+                            <td class="text-center">{{ display_value }}</td>
+                            {% endif %}
+                            {% elif loop.index == 8 %}
+                            {% if value > 0 %}
+                            <td class="text-center text-danger bold">{{ display_value }}</td>
+                            {% else %}
+                            <td class="text-center">{{ display_value }}</td>
+                            {% endif %}
+                            {% elif loop.index == 9 %}
+                            {% if value > 1200 %}
+                            <td class="text-center text-warning bold">{{ display_value }}</td>
+                            {% else %}
+                            <td class="text-center">{{ display_value }}</td>
+                            {% endif %}
+                            {% elif loop.index == 10 %}
+                            {% if value > 100 %}
+                            <td class="text-center text-warning bold">{{ display_value }}</td>
+                            {% else %}
+                            <td class="text-center">{{ display_value }}</td>
+                            {% endif %}
+                            {% elif loop.index == 11 %}
+                            {% if value > 10 %}
+                            <td class="text-center text-danger bold">{{ display_value }}</td>
+                            {% else %}
+                            <td class="text-center">{{ display_value }}</td>
+                            {% endif %}
+                            {% elif loop.index in range(12, 23) or loop.index == 7 %}
+                            {% if value > 4 %}
+                            <td class="text-center text-danger bold">{{ display_value }}</td>
+                            {% else %}
+                            <td class="text-center">{{ display_value }}</td>
+                            {% endif %}
+                            {% else %}
+                            <td class="text-center">{{ display_value }}</td>
+                            {% endif %}
+                            {% endfor %}
+                        </tr>
                         {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in df_global.itertuples(index=False) %}
-                    <tr>
-                        {% for value in row %}
-                        {% if loop.index == 3 %}
-                        <td class="text-capitalize text-center">{{ value }}</td>
-                        {% elif loop.index == 4 %}
-                        <td class="text-success text-center">{{ value }}</td>
-                        {% elif loop.index == 5 %}
-                        <td class="text-primary text-center">{{ value }}</td>
-                        {% elif loop.index == 8 %}
-                        {% if value > 0 %}
-                        <td class="text-center text-danger bold">{{ value }}</td>
-                        {% else %}
-                        <td class="text-center">{{ value }}</td>
-                        {% endif %}
-                        {% elif loop.index == 11 %}
-                        {% if value > 10 %}
-                        <td class="text-center text-danger bold">{{ value }}</td>
-                        {% else %}
-                        <td class="text-center">{{ value }}</td>
-                        {% endif %}
-                        {% elif loop.index in range(12, 17) or loop.index == 7 %}
-                        {% if value > 4 %}
-                        <td class="text-center text-danger bold">{{ value }}</td>
-                        {% else %}
-                        <td class="text-center">{{ value }}</td>
-                        {% endif %}
-                        {% else %}
-                        <td class="text-center">{{ value }}</td>
-                        {% endif %}
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
+
         </div>
 
     </div>

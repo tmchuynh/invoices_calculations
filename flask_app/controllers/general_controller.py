@@ -109,7 +109,7 @@ def rename_columns(df):
 
 
 def format_currency(df):
-    currency_columns = ['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts']
+    currency_columns = ['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts', 'Rate']
     for col in currency_columns:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -259,11 +259,12 @@ def results():
             df = convert_to_number(df)
             df = calculate_total(df)
             numbers_df = df
+            print(numbers_df)
             df = format_currency(df)
             
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-            return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df)
+            return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df, zip=zip)
 
         elif request.method == 'GET':
             # If GET request, show all data without filters
@@ -271,11 +272,13 @@ def results():
             df = rename_columns(df)
             df = convert_to_number(df)
             df = calculate_total(df)
-            numbers_df = df
+            numbers_df = df.copy()
+            print(df)
+            print(numbers_df.itertuples)
             df = format_currency(df)
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-            return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df)
+            return render_template('results.html', table_html=table_html, df_global=df, numbers_df=numbers_df, zip=zip)
     return redirect('/')
 
 
@@ -293,6 +296,6 @@ def see_all():
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-        return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df)
+        return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df, zip=zip)
     return redirect('/')
 
