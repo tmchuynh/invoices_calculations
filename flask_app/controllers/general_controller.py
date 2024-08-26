@@ -219,16 +219,15 @@ def refresh(df):
 @bp.route('/', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
-        
         if 'file' in request.files:
             file = request.files['file']
             if file:
                 try:
                     df = read_excel(file)
+                    df = refresh(df)
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
-                df = refresh(df)
                 total_classes = df.pop('Total # of Classes')
                 df.insert(8, 'Total # of Classes', total_classes)
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
@@ -252,8 +251,12 @@ def results():
         
         # Check if filters are applied
         month = int(request.form.get('month', 0))
-        email_filter = request.form.get('email', '').strip()
-        name_filter = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        name = request.form.get('name', '').strip()
+        
+        # Check if no filters are applied
+        if not any([month != '0', email, name]):
+            return redirect('/results')  # Refresh the page
         
         df = rename_columns(df)
 
@@ -263,10 +266,10 @@ def results():
                 df = filter_by_month(df, 'Date', month)
                 df = refresh(df)
                 
-            if email_filter:
-                df = filter_by_column(df, 'Email', email_filter)
-            if name_filter:
-                df = filter_by_column(df, 'Full Name', name_filter)
+            if email:
+                df = filter_by_column(df, 'Email', email)
+            if name:
+                df = filter_by_column(df, 'Full Name', name)
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = convert_to_number(df)

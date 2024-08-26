@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_session import Session
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 import os
@@ -19,11 +20,14 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['DEBUG'] = True
+    app.config['SESSION_TYPE'] = 'filesystem'
     app.secret_key = os.getenv('SECRET_KEY') or secrets.token_hex(48)
     
     # Initialize SQLAlchemy and Flask-Migrate
     db.init_app(app)
     migrate = Migrate(app, db)
+    Session(app)
+    
     
     def get_session():
         return db.session
