@@ -66,23 +66,26 @@ def convert_to_number(df):
     return df
 
 def rename_columns(df):
-    df = df.rename(columns={"How many work meetings did you attend?": "Work Meetings",
-                       "How many administrative meetings did you attend?": "Admin Meetings",
-                       "Any invoices/receipts?": "Invoices/Receipts",
-                       "How many classes did you teach this month? [Arroyo]": "Arroyo",
-                       "How many classes did you teach this month? [Myford]": "Myford",
-                       "How many classes did you teach this month? [Tustin Ranch]": "Tustin Ranch",
-                       "How many classes did you teach this month? [Ladera]": "Ladera",
-                       "How many classes did you teach this month? [Anaheim Hills]": "Anaheim Hills",
-                       "How many classes did you teach this month? [Historic Anaheim]": "Historic Anaheim",
-                       "How many classes did you teach this month? [North Tustin]": "North Tustin",
-                       "How many classes did you teach this month? [San Juan Capistrano]": "San Juan Capistrano",
-                       "How many classes did you teach this month? [Hicks Canyon]": "Hicks Canyon",
-                       "How many classes did you teach this month? [Orchard Hills]": "Orchard Hills",
-                       "How many classes did you teach this month? [Peters Canyon]": "Peters Canyon",
-                       "How many classes did you teach this month? [TMA]": "TMA"
+    df = df.rename(columns={
+        "Timestamp": "Date",
+        "How many work meetings did you attend?": "Work Meetings",
+        "How many administrative meetings did you attend?": "Admin Meetings",
+        "Total $$ for the month": "Instructor Provided Total",
+        "Did you work on any side projects?": "Side Projects",
+        "Any invoices/receipts?": "Invoices/Receipts",
+        "How many classes did you teach this month? [Arroyo]": "Arroyo",
+        "How many classes did you teach this month? [Myford]": "Myford",
+        "How many classes did you teach this month? [Tustin Ranch]": "Tustin Ranch",
+        "How many classes did you teach this month? [Ladera]": "Ladera",
+        "How many classes did you teach this month? [Anaheim Hills]": "Anaheim Hills",
+        "How many classes did you teach this month? [Historic Anaheim]": "Historic Anaheim",
+        "How many classes did you teach this month? [North Tustin]": "North Tustin",
+        "How many classes did you teach this month? [San Juan Capistrano]": "San Juan Capistrano",
+        "How many classes did you teach this month? [Hicks Canyon]": "Hicks Canyon",
+        "How many classes did you teach this month? [Orchard Hills]": "Orchard Hills",
+        "How many classes did you teach this month? [Peters Canyon]": "Peters Canyon",
+        "How many classes did you teach this month? [TMA]": "TMA"
         })
-    print(df)
     return df
 
 
@@ -92,22 +95,6 @@ def format_currency(df):
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
             df[col] = df[col].replace('', '0.00').fillna('0.00').astype('float')
-            df[col + '_formatted'] = df[col].apply(lambda x: f"${x:,.2f}")
-            
-    month_total_unformat = df.pop('Total $$ for the month')
-    month_total_format = df.pop('Total $$ for the month_formatted')
-    side_project_unformat = df.pop('Did you work on any side projects?')
-    side_project_format = df.pop('Did you work on any side projects?_formatted')
-    total_unformat = df.pop('Calculated Total Amount')
-    total_format = df.pop('Calculated Total Amount_formatted')
-    
-    df.insert(3, 'Calculated Total Amount', total_format)
-    df.insert(4, 'Given Total Amount', month_total_format)
-    df.insert(8, 'Side Project Amount', side_project_format)
-    
-    df.insert(len(df.columns), 'Unformatted Calculated Total Amount', total_unformat)
-    df.insert(len(df.columns), 'Unformatted Given Total Amount', month_total_unformat)
-    df.insert(len(df.columns), 'Unformatted Side Project Amount', side_project_unformat)
             
     return df
 
