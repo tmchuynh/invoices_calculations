@@ -56,8 +56,12 @@ def addition(df, row_index):
 
 def convert_to_number(df):
     column_indices = [
+        'Calculated Total Amount',
+        'Instructor Provided Total',
         'Work Meetings',
         'Admin Meetings',
+        'Side Projects',
+        'Invoices/Receipts',
         'Total # of Classes',
         'Arroyo',
         'Myford',
@@ -105,14 +109,11 @@ def rename_columns(df):
 
 
 def format_currency(df):
-    currency_columns = ['Total $$ for the month', 'Did you work on any side projects?']
-    if 'Calculated Total Amount' not in df.columns:
-        df['Calculated Total Amount'] = 0.0
+    currency_columns = ['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts']
     for col in currency_columns:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
             df[col] = df[col].replace('', '0.00').fillna('0.00').astype('float')
-            df['Calculated Total Amount'] += df[col]
             df[col] = df[col].apply(lambda x: f"${x:,.2f}")
     
     df['Calculated Total Amount'] = df['Calculated Total Amount'].apply(lambda x: f"${x:,.2f}")
@@ -135,7 +136,36 @@ def sum_and_format_numbers(df, column_name):
         df[column_name] = df[column_name].map(lambda x: extract_and_sum_numbers(x))
         
         # Convert the column to numeric and format as currency
-        df[column_name] = pd.to_numeric(df[column_name], errors='coerce').apply(lambda x: f"${x:,.2f}" if pd.notna(x) else "")
+        df[column_name] = pd.to_numeric(df[column_name], errors='coerce')
+    
+    return df
+
+
+def calculate_total(df):
+    extra_income = []
+    df = calculate_meetings(df)
+    df = calculate_classes(df)
+    if 'Calculated Total Amount' not in df.columns:
+        df['Calculated Total Amount'] = 0.0
+        
+    extra_income = ['Side Projects', 'Invoices/Receipts']
+        
+    for col in extra_income:
+        if col in df.columns:
+            df['Calculated Total Amount'] += df[col]
+    
+    
+    return df
+
+
+def calculate_meetings(df):
+    meetings = df.get(['Work Meetings', 'Admin Meetings'])
+    
+    return df
+
+
+def calculate_classes(df):
+    classes = df.get(['Total # Of Classes'])
     
     return df
 
@@ -157,8 +187,6 @@ def upload():
                 df.insert(3, 'Rate', '')
                 
                 df.insert(4, 'Calculated Total Amount', 0)
-                total_amount = df.get(['Calculated Total Amount', 'Rate', 'Total # of Classes'])
-
 
                 global df_global
                 df_global = df
@@ -189,23 +217,27 @@ def results():
                 df = filter_by_column(df, 'Full Name', name_filter)
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
-            df = format_currency(df)
             df = rename_columns(df)
             df = convert_to_number(df)
+            df = calculate_total(df)
+            numbers_df = df
+            df = format_currency(df)
             
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-            return render_template('results.html', table_html=table_html, df_global=df)
+            return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df)
 
         elif request.method == 'GET':
             # If GET request, show all data without filters
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
-            df = format_currency(df)
             df = rename_columns(df)
             df = convert_to_number(df)
+            df = calculate_total(df)
+            numbers_df = df
+            df = format_currency(df)
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-            return render_template('results.html', table_html=table_html, df_global=df)
+            return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df)
     return redirect('/')
 
 
@@ -215,12 +247,14 @@ def see_all():
     if df_global is not None:
         df = df_global.copy()
         df = sum_and_format_numbers(df, 'Any invoices/receipts?')
-        df = format_currency(df)
         df = rename_columns(df)
         df = convert_to_number(df)
+        df = calculate_total(df)
+        numbers_df = df
+        df = format_currency(df)
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-        return render_template('results.html', table_html=table_html, df_global=df)
+        return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df)
     return redirect('/')
 
