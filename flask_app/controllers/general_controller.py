@@ -23,8 +23,7 @@ def read_excel(file):
         
     total_classes = df.pop('Total # of Classes')
     df.insert(8, 'Total # of Classes', total_classes)
- 
-   
+       
     return df
 
 
@@ -54,16 +53,32 @@ def addition(df, row_index):
     
     return df
 
+
 def convert_to_number(df):
-    column_indices = [5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    column_indices = [
+        'Work Meetings',
+        'Admin Meetings',
+        'Total # of Classes',
+        'Arroyo',
+        'Myford',
+        'Tustin Ranch',
+        'Ladera',
+        'Anaheim Hills',
+        'Historic Anaheim',
+        'North Tustin',
+        'San Juan Capistrano',
+        'Hicks Canyon',
+        'Orchard Hills',
+        'Peters Canyon',
+        'TMA'
+    ]
     
     # Convert the specified columns to numeric
     for col in column_indices:
-        # Access the column by its index and convert to numeric
-        df[df.columns[col]] = pd.to_numeric(df.iloc[:, col], errors='coerce')
-        df[df.columns[col]] = df[df.columns[col]].fillna(0).astype('Int64')
-    
+        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype('int64')
+            
     return df
+
 
 def rename_columns(df):
     df = df.rename(columns={
@@ -90,12 +105,17 @@ def rename_columns(df):
 
 
 def format_currency(df):
-    currency_columns = ['Total $$ for the month', 'Did you work on any side projects?', 'Calculated Total Amount']
+    currency_columns = ['Total $$ for the month', 'Did you work on any side projects?']
+    if 'Calculated Total Amount' not in df.columns:
+        df['Calculated Total Amount'] = 0.0
     for col in currency_columns:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
             df[col] = df[col].replace('', '0.00').fillna('0.00').astype('float')
+            df['Calculated Total Amount'] += df[col]
             df[col] = df[col].apply(lambda x: f"${x:,.2f}")
+    
+    df['Calculated Total Amount'] = df['Calculated Total Amount'].apply(lambda x: f"${x:,.2f}")
             
     return df
 
@@ -119,6 +139,7 @@ def sum_and_format_numbers(df, column_name):
     
     return df
 
+
 @bp.route('/', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
@@ -133,8 +154,11 @@ def upload():
 
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('0')
+                df.insert(3, 'Rate', '')
                 
-                df.insert(3, 'Calculated Total Amount', '')
+                df.insert(4, 'Calculated Total Amount', 0)
+                total_amount = df.get(['Calculated Total Amount', 'Rate', 'Total # of Classes'])
+
 
                 global df_global
                 df_global = df
@@ -193,6 +217,7 @@ def see_all():
         df = sum_and_format_numbers(df, 'Any invoices/receipts?')
         df = format_currency(df)
         df = rename_columns(df)
+        df = convert_to_number(df)
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
