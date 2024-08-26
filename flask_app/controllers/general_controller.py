@@ -95,6 +95,7 @@ def format_currency(df):
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
             df[col] = df[col].replace('', '0.00').fillna('0.00').astype('float')
+            df[col] = df[col].apply(lambda x: f"${x:,.2f}")
             
     return df
 
