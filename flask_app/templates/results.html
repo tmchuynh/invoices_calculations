@@ -62,7 +62,7 @@
                         <td class="text-success text-center">{{ value }}</td>
                         {% elif loop.index == 5 %}
                         <td class="text-primary text-center">{{ value }}</td>
-                        {% elif loop.index == 7 %}
+                        {% elif loop.index == 8 %}
                         {% if value > 0 %}
                         <td class="text-center text-danger bold">{{ value }}</td>
                         {% else %}
@@ -74,7 +74,7 @@
                         {% else %}
                         <td class="text-center">{{ value }}</td>
                         {% endif %}
-                        {% elif loop.index in range(12, 17) %}
+                        {% elif loop.index in range(12, 17) or loop.index == 7 %}
                         {% if value > 4 %}
                         <td class="text-center text-danger bold">{{ value }}</td>
                         {% else %}

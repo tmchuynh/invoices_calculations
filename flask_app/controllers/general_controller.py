@@ -154,18 +154,42 @@ def calculate_total(df):
         if col in df.columns:
             df['Calculated Total Amount'] += df[col]
     
-    
     return df
 
 
 def calculate_meetings(df):
-    meetings = df.get(['Work Meetings', 'Admin Meetings'])
+    meetings = df.get(['Work Meetings', 'Admin Meetings']).copy()
+    
+    work_meeting_rate = 20
+    admin_meeting_rate = 35
+    
+    meetings['Work Meetings'] = pd.to_numeric(meetings['Work Meetings'], errors='coerce').fillna(0) * work_meeting_rate
+    meetings['Admin Meetings'] = pd.to_numeric(meetings['Admin Meetings'], errors='coerce').fillna(0) * admin_meeting_rate
+
+    df['Calculated Total Amount'] += meetings.sum(axis=1)
     
     return df
 
 
 def calculate_classes(df):
     classes = df.get(['Total # Of Classes'])
+    
+    instructors = df.get(['Full Name']).copy()
+    
+    rates = {
+        'Jessalyn nguyen': 50,
+        'Jaqueline Rodriguez': 75,
+        'Krystal Alexander': 55
+    }
+    
+    instructor_rates = df.get(['Rate']).copy()
+    
+    for index in range(0, len(df)):
+        for x in rates:
+            if df.loc[index, 'Full Name'] == x:
+                instructor_rates.loc[index] = rates[x]
+                
+    df['Rate'] += instructor_rates.sum(axis=1)
     
     return df
 
@@ -184,7 +208,7 @@ def upload():
 
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('0')
-                df.insert(3, 'Rate', '')
+                df.insert(3, 'Rate', 0)
                 
                 df.insert(4, 'Calculated Total Amount', 0)
 
