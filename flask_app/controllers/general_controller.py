@@ -171,7 +171,7 @@ def calculate_meetings(df):
     return df
 
 
-def calculate_classes(df):
+def input_rates(df):
     classes = df.get(['Total # Of Classes'])
     
     instructors = df.get(['Full Name']).copy()
@@ -190,6 +190,20 @@ def calculate_classes(df):
                 instructor_rates.loc[index] = rates[x]
                 
     df['Rate'] += instructor_rates.sum(axis=1)
+    
+    return df
+
+
+def calculate_classes(df):
+    df = input_rates(df)
+    
+    num_of_classes = df.get(['Total # of Classes']).copy()
+    rate = df.get(['Rate']).copy()
+    
+    class_income = pd.Series(0, index=df.index)
+    class_income = class_income + rate.sum(axis=1) * num_of_classes.sum(axis=1)
+    
+    df['Calculated Total Amount'] += class_income
     
     return df
 
