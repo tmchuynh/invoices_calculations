@@ -3,6 +3,7 @@ import re
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
+from pandas.io.formats.style import Styler
 
 # Create a Blueprint
 bp = Blueprint('general', __name__)
@@ -22,7 +23,8 @@ def read_excel(file):
         
     total_classes = df.pop('Total # of Classes')
     df.insert(8, 'Total # of Classes', total_classes)
-        
+ 
+   
     return df
 
 
@@ -63,6 +65,26 @@ def convert_to_number(df):
     
     return df
 
+def rename_columns(df):
+    df = df.rename(columns={"How many work meetings did you attend?": "Work Meetings",
+                       "How many administrative meetings did you attend?": "Admin Meetings",
+                       "Any invoices/receipts?": "Invoices/Receipts",
+                       "How many classes did you teach this month? [Arroyo]": "Arroyo",
+                       "How many classes did you teach this month? [Myford]": "Myford",
+                       "How many classes did you teach this month? [Tustin Ranch]": "Tustin Ranch",
+                       "How many classes did you teach this month? [Ladera]": "Ladera",
+                       "How many classes did you teach this month? [Anaheim Hills]": "Anaheim Hills",
+                       "How many classes did you teach this month? [Historic Anaheim]": "Historic Anaheim",
+                       "How many classes did you teach this month? [North Tustin]": "North Tustin",
+                       "How many classes did you teach this month? [San Juan Capistrano]": "San Juan Capistrano",
+                       "How many classes did you teach this month? [Hicks Canyon]": "Hicks Canyon",
+                       "How many classes did you teach this month? [Orchard Hills]": "Orchard Hills",
+                       "How many classes did you teach this month? [Peters Canyon]": "Peters Canyon",
+                       "How many classes did you teach this month? [TMA]": "TMA"
+        })
+    print(df)
+    return df
+
 
 def format_currency(df):
     currency_columns = ['Total $$ for the month', 'Did you work on any side projects?', 'Calculated Total Amount']
@@ -72,7 +94,20 @@ def format_currency(df):
             df[col] = df[col].replace('', '0.00').fillna('0.00').astype('float')
             df[col + '_formatted'] = df[col].apply(lambda x: f"${x:,.2f}")
             
+    month_total_unformat = df.pop('Total $$ for the month')
+    month_total_format = df.pop('Total $$ for the month_formatted')
+    side_project_unformat = df.pop('Did you work on any side projects?')
+    side_project_format = df.pop('Did you work on any side projects?_formatted')
+    total_unformat = df.pop('Calculated Total Amount')
+    total_format = df.pop('Calculated Total Amount_formatted')
     
+    df.insert(3, 'Calculated Total Amount', total_format)
+    df.insert(4, 'Given Total Amount', month_total_format)
+    df.insert(8, 'Side Project Amount', side_project_format)
+    
+    df.insert(len(df.columns), 'Unformatted Calculated Total Amount', total_unformat)
+    df.insert(len(df.columns), 'Unformatted Given Total Amount', month_total_unformat)
+    df.insert(len(df.columns), 'Unformatted Side Project Amount', side_project_unformat)
             
     return df
 
@@ -126,8 +161,6 @@ def results():
     if df_global is not None:
         df = df_global.copy()
         
-        print(df.itertuples)
-
         # Check if filters are applied
         month = int(request.form.get('month', 0))
         email_filter = request.form.get('email', '').strip()
@@ -145,6 +178,7 @@ def results():
             
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
+            df = rename_columns(df)
             df = convert_to_number(df)
             
             # Convert to HTML table
@@ -155,6 +189,7 @@ def results():
             # If GET request, show all data without filters
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = format_currency(df)
+            df = rename_columns(df)
             df = convert_to_number(df)
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
@@ -169,6 +204,7 @@ def see_all():
         df = df_global.copy()
         df = sum_and_format_numbers(df, 'Any invoices/receipts?')
         df = format_currency(df)
+        df = rename_columns(df)
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
