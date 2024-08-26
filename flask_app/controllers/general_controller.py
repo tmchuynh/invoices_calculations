@@ -12,17 +12,6 @@ df_global = None
 
 def read_excel(file):
     df = pd.read_excel(file, engine='openpyxl', dtype=str)
-    df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
-
-    # Reformat the 'Timestamp' column to the desired format
-    df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
-    
-    # Iterate over each row, starting from the second row
-    for index in range(0, len(df)):
-        df = addition(df, index)
-        
-    total_classes = df.pop('Total # of Classes')
-    df.insert(8, 'Total # of Classes', total_classes)
        
     return df
 
@@ -208,6 +197,22 @@ def calculate_classes(df):
     return df
 
 
+def refresh(df):
+    df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
+
+    # Reformat the 'Timestamp' column to the desired format
+    df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
+    
+    # Iterate over each row, starting from the second row
+    for index in range(0, len(df)):
+        df = addition(df, index)
+        
+    total_classes = df.pop('Total # of Classes')
+    df.insert(8, 'Total # of Classes', total_classes)
+    
+    return df
+
+
 @bp.route('/', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
@@ -220,6 +225,7 @@ def upload():
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
+                df = refresh(df)
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('0')
                 df.insert(3, 'Rate', 0)
@@ -243,12 +249,13 @@ def results():
         month = int(request.form.get('month', 0))
         email_filter = request.form.get('email', '').strip()
         name_filter = request.form.get('name', '').strip()
-        
 
         if request.method == 'POST':
             # Apply filters if provided
             if month != 0 and 'Timestamp' in df.columns:
                 df = filter_by_month(df, 'Timestamp', month)
+                df = refresh(df)
+                
             if email_filter:
                 df = filter_by_column(df, 'Email', email_filter)
             if name_filter:
@@ -258,8 +265,7 @@ def results():
             df = rename_columns(df)
             df = convert_to_number(df)
             df = calculate_total(df)
-            numbers_df = df
-            print(numbers_df)
+            numbers_df = df.copy()
             df = format_currency(df)
             
             # Convert to HTML table
@@ -273,8 +279,6 @@ def results():
             df = convert_to_number(df)
             df = calculate_total(df)
             numbers_df = df.copy()
-            print(df)
-            print(numbers_df.itertuples)
             df = format_currency(df)
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
@@ -291,7 +295,7 @@ def see_all():
         df = rename_columns(df)
         df = convert_to_number(df)
         df = calculate_total(df)
-        numbers_df = df
+        numbers_df = df.copy()
         df = format_currency(df)
 
         # Render the modified DataFrame as HTML
