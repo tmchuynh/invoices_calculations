@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
-import secrets
 
 load_dotenv()  # Load environment variables
 
@@ -21,7 +20,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['DEBUG'] = True
     app.config['SESSION_TYPE'] = 'filesystem'
-    app.secret_key = os.getenv('SECRET_KEY') or secrets.token_hex(48)
+    app.secret_key = os.getenv('SECRET_KEY')
     
     # Initialize SQLAlchemy and Flask-Migrate
     db.init_app(app)
