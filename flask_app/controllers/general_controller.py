@@ -264,7 +264,7 @@ def results():
             
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-            return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df, zip=zip)
+            return render_template('results.html', table_html=table_html, df_global=df, numbers_df=numbers_df, zip=zip)
 
         elif request.method == 'GET':
             # If GET request, show all data without filters
@@ -296,6 +296,7 @@ def see_all():
 
         # Render the modified DataFrame as HTML
         table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
-        return render_template('results.html', table_html=table_html, df_global=df, df=numbers_df, zip=zip)
+        return render_template('results.html', table_html=table_html, df_global=df, numbers_df=numbers_df, zip=zip)
+
     return redirect('/')
 
