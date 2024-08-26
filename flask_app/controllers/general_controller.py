@@ -12,7 +12,6 @@ df_global = None
 
 def read_excel(file):
     df = pd.read_excel(file, engine='openpyxl', dtype=str)
-       
     return df
 
 
@@ -28,18 +27,24 @@ def filter_by_column(df, column_name, value):
 
 
 def addition(df, row_index):
-    # Calculate the total for the current row across the specified columns
+    # Ensure 'Total # of Classes' column exists
+    if 'Total # of Classes' not in df.columns:
+        df['Total # of Classes'] = 0
+    
+    # Get column indices to sum based on the position
+    start_col = 11  # Index of the first column to include in the sum
+
+    # Iterate over each row to calculate the total
     total = 0
-    for col in range(9, len(df.columns)):
-        col_name = df.columns[col]
-        value = pd.to_numeric(df.at[row_index, col_name], errors='coerce')
+    for col_index in range(start_col, len(df.columns)):
+        col_name = df.columns[col_index]
+        value = pd.to_numeric(df.iloc[row_index, col_index], errors='coerce')
+        df.at[row_index, 'Total # of Classes'] = total
+        
         if pd.isna(value):
             value = 0
         total += value
-        
-    # Update the 'Total # of Classes' column for the current row
-    df.at[row_index, 'Total # of Classes'] = total
-    
+
     return df
 
 
@@ -119,66 +124,79 @@ def sum_and_format_numbers(df, column_name):
         numbers = map(float, numbers)
         return sum(numbers)
     
-    # Check if the specified column exists
+    # Ensure the specified column exists in the DataFrame
     if column_name in df.columns:
-        # Apply extraction and summing function
-        df[column_name] = df[column_name].map(lambda x: extract_and_sum_numbers(x))
+        # Apply extraction and summing function to each row
+        df[column_name] = df[column_name].apply(lambda x: extract_and_sum_numbers(x) if pd.notna(x) else 0)
         
-        # Convert the column to numeric and format as currency
-        df[column_name] = pd.to_numeric(df[column_name], errors='coerce')
+        # Convert the column to numeric
+        df[column_name] = pd.to_numeric(df[column_name], errors='coerce').fillna(0)
     
     return df
 
 
 def calculate_total(df):
-    extra_income = []
-    df = calculate_meetings(df)
-    df = calculate_classes(df)
+    # Ensure 'Calculated Total Amount' column exists
     if 'Calculated Total Amount' not in df.columns:
         df['Calculated Total Amount'] = 0.0
-        
-    extra_income = ['Side Projects', 'Invoices/Receipts']
-        
-    for col in extra_income:
+    
+    # Calculate total from meetings and classes
+    df = calculate_meetings(df)
+    df = calculate_classes(df)
+    
+    # List of columns for extra income
+    extra_income_cols = ['Side Projects', 'Invoices/Receipts']
+    
+    # Calculate total from extra income columns
+    for col in extra_income_cols:
         if col in df.columns:
-            df['Calculated Total Amount'] += df[col]
+            # Use row-wise sum for extra income
+            df['Calculated Total Amount'] += df[col].fillna(0).astype(float)
     
     return df
 
 
 def calculate_meetings(df):
-    meetings = df.get(['Work Meetings', 'Admin Meetings']).copy()
-    
+    # Define rates
     work_meeting_rate = 20
     admin_meeting_rate = 35
     
-    meetings['Work Meetings'] = pd.to_numeric(meetings['Work Meetings'], errors='coerce').fillna(0) * work_meeting_rate
-    meetings['Admin Meetings'] = pd.to_numeric(meetings['Admin Meetings'], errors='coerce').fillna(0) * admin_meeting_rate
-
-    df['Calculated Total Amount'] += meetings.sum(axis=1)
+    # Ensure 'Calculated Total Amount' column exists
+    if 'Calculated Total Amount' not in df.columns:
+        df['Calculated Total Amount'] = 0.0
+    
+    # Calculate work meetings and admin meetings income
+    work_meetings_income = pd.Series(0, index=df.index)
+    admin_meetings_income = pd.Series(0, index=df.index)
+    
+    if 'Work Meetings' in df.columns:
+        work_meetings_income = pd.to_numeric(df['Work Meetings'], errors='coerce').fillna(0) * work_meeting_rate
+    
+    if 'Admin Meetings' in df.columns:
+        admin_meetings_income = pd.to_numeric(df['Admin Meetings'], errors='coerce').fillna(0) * admin_meeting_rate
+    
+    # Sum income from work meetings and admin meetings
+    df['Calculated Total Amount'] += work_meetings_income + admin_meetings_income
     
     return df
 
 
 def input_rates(df):
-    classes = df.get(['Total # Of Classes'])
-    
-    instructors = df.get(['Full Name']).copy()
-    
     rates = {
         'Jessalyn nguyen': 50,
         'Jaqueline Rodriguez': 75,
         'Krystal Alexander': 55
     }
-    
-    instructor_rates = df.get(['Rate']).copy()
-    
-    for index in range(0, len(df)):
-        for x in rates:
-            if df.loc[index, 'Full Name'] == x:
-                instructor_rates.loc[index] = rates[x]
-                
-    df['Rate'] += instructor_rates.sum(axis=1)
+
+    for index in range(len(df)):
+        if index in df.index and 'Full Name' in df.columns:
+            full_name = df.loc[index, 'Full Name']
+        else:
+            continue
+            # print(f"Index {index} or column 'Full Name' not found in DataFrame")
+        # full_name = df.loc[index, 'Full Name']
+        if full_name in rates:
+            df.at[index, 'Rate'] = rates[full_name]
     
     return df
 
@@ -186,11 +204,11 @@ def input_rates(df):
 def calculate_classes(df):
     df = input_rates(df)
     
-    num_of_classes = df.get(['Total # of Classes']).copy()
-    rate = df.get(['Rate']).copy()
+    num_of_classes = df['Total # of Classes']
+    rate = df['Rate']
     
     class_income = pd.Series(0, index=df.index)
-    class_income = class_income + rate.sum(axis=1) * num_of_classes.sum(axis=1)
+    class_income += rate * num_of_classes
     
     df['Calculated Total Amount'] += class_income
     
@@ -200,19 +218,11 @@ def calculate_classes(df):
 def refresh(df):
     if 'Timestamp' in df.columns:
         df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
-
-        # Reformat the 'Timestamp' column to the desired format
         df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
     else:
         df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d %H:%M:%S')
-
-        # Reformat the 'Date' column to the desired format
         df['Date'] = df['Date'].dt.strftime('%b %d %y %I:%M:%S %p')
-    
-    # Iterate over each row, starting from the second row
-    for index in range(0, len(df)):
-        df = addition(df, index)
-    
+
     return df
 
 
@@ -228,12 +238,10 @@ def upload():
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
-                total_classes = df.pop('Total # of Classes')
-                df.insert(8, 'Total # of Classes', total_classes)
+                df.insert(8, 'Total # of Classes', 0)
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('0')
                 df.insert(3, 'Rate', 0)
-                
                 df.insert(4, 'Calculated Total Amount', 0)
 
                 global df_global
@@ -264,18 +272,29 @@ def results():
             # Apply filters if provided
             if month != 0 and 'Date' in df.columns:
                 df = filter_by_month(df, 'Date', month)
-                df = refresh(df)
-                
+                df = refresh(df)                
             if email:
                 df = filter_by_column(df, 'Email', email)
             if name:
                 df = filter_by_column(df, 'Full Name', name)
+                
+            # Drop rows where all values are NaN
+            df = df.dropna(how='all')
+
+            # Reset index after dropping rows
+            df = df.reset_index(drop=True)
             
+            # Iterate over each row and apply the addition function
+            for index in range(df.shape[0]):
+                df = df.dropna(how='all')
+                df = addition(df, index)
+                
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = convert_to_number(df)
             df = calculate_total(df)
             numbers_df = df.copy()
             df = format_currency(df)
+            
             
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
@@ -283,6 +302,9 @@ def results():
 
         elif request.method == 'GET':
             # If GET request, show all data without filters
+            # Iterate over each row and apply the addition function
+            for index in range(len(df)):
+                df = addition(df, index)
             df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = convert_to_number(df)
             df = calculate_total(df)
@@ -299,6 +321,9 @@ def see_all():
     global df_global
     if df_global is not None:
         df = df_global.copy()
+        # Iterate over each row and apply the addition function
+        for index in range(len(df)):
+            df = addition(df, index)
         df = sum_and_format_numbers(df, 'Any invoices/receipts?')
         df = rename_columns(df)
         df = convert_to_number(df)
