@@ -18,8 +18,11 @@ td.rate {
     width: 8%;
 }
 
-td.meeting,
 td.classes {
+    width: 4%;
+}
+
+td.meeting {
     width: 3%;
 }
 

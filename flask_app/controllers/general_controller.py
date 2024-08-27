@@ -284,7 +284,8 @@ def upload():
                 df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
                 df = df.fillna('0')
                 df.insert(3, 'Rate', 0)
-                df.insert(4, 'Calculated Total Amount', 0)
+                df.insert(4, 'OH Rate', 0)
+                df.insert(5, 'Calculated Total Amount', 0)
 
                 global df_global
                 df_global = df
