@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+.git
+/.env
+/default.session.sql
+/__pycache__
+/.mypy_cache
+/*/__pycache__
+/*/*/__pycache__
+/excel_file_experiment.mwb
+/flask_excel.mwb
+/migrations
+/flask_session
+/venv
+.DS_Store
