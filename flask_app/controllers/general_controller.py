@@ -183,9 +183,38 @@ def calculate_meetings(df):
 
 def input_rates(df):
     rates = {
-        'Jessalyn nguyen': 50,
-        'Jaqueline Rodriguez': 75,
-        'Krystal Alexander': 55
+        'Aldyn Richmond': 50,
+        'Alex Garber': 55,
+        'Anamaria Najjar': 50,
+        'Andy Prendiville': 75,
+        'Bailey Johnson': 65,
+        'Brian Kile': 65,
+        'Charity Norton': 50,
+        'Cory Camama': 75,
+        'Dominick Pallatto': 65,
+        'Gabriel Hernandez': 65,
+        'Gino DeFalco': 50,
+        'Jackie Rodriguez': 55,
+        'Jaqueline Rodriguez': 55,
+        'James Manley': 50,
+        "James O'Leary": 60,
+        'Jenny Dong': 60,
+        'Jessalyn Nguyen': 50,
+        'Keshawn Carter': 50,
+        'Kimberly Nguyen': 65,
+        'Kim Nguyen': 65,
+        'Krystal Alexander': 55,
+        'Layla Kurokawa': 70,
+        'Max Evans': 55,
+        'Michael Le': 60,
+        'Middka Vicencio': 75,
+        'Mike Ash': 75,
+        'Nnamdi Agude': 65,
+        'Sharon Aguilar': 55,
+        'Shyam Gandhi': 55,
+        'Tina Huynh': 65,
+        'Tommy Owens': 75,
+        'Zayaan Khan': 50
     }
 
     for index in range(len(df)):
