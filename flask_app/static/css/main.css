@@ -7,3 +7,21 @@
     font-weight: bold !important;
     font-size: 1.5rem;
 }
+
+td {
+    width: 12%;
+}
+
+td.total,
+td.rate {
+    width: 8%;
+}
+
+td.meeting,
+td.classes {
+    width: 3%;
+}
+
+td.count {
+    width: 2%;
+}

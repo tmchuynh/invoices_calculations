@@ -31,13 +31,15 @@
                         <option value="12">December</option>
                     </select>
                 </div>
-                <div class="input-group mb-3">
+                <div class="input-group mb-3 w-25">
                     <label class="input-group-text" for="email">Filter by Email:</label>
-                    <input type="text" name="email" id="email" value="{{ request.form.get('email', '') }}">
+                    <input class="form-control" type="text" name="email" id="email"
+                        value="{{ request.form.get('email', '') }}">
                 </div>
-                <div class="input-group mb-3">
+                <div class="input-group mb-3 w-25">
                     <label class="input-group-text" for="name">Filter by Name</label>
-                    <input type="text" name="name" id="name" value="{{ request.form.get('name', '') }}">
+                    <input class="form-control" type="text" name="name" id="name"
+                        value="{{ request.form.get('name', '') }}">
                 </div>
                 <input type="submit" value="Apply Filters" class="btn btn-primary">
             </form>
@@ -63,38 +65,44 @@
                     df_global.itertuples(index=False)) %}
                     <tr>
                         {% for value, display_value in zip(row, display_row) %}
+                        {# Rate #}
                         {% if loop.index == 4 %}
                         <td class="text-success text-center rate">{{ display_value }}</td>
-                        {% elif loop.index == 5 %} total
+                        {% elif loop.index == 5 %}
                         {% if value > 1200 %}
                         <td class="text-center text-danger bold total">{{ display_value }}</td>
                         {% else %}
                         <td class="text-center total">{{ display_value }}</td>
                         {% endif %}
+                        {# Instructor Provided Total Amount #}
                         {% elif loop.index == 6 %}
                         {% if value > 1200 %}
                         <td class="text-center text-warning bold total">{{ display_value }}</td>
                         {% else %}
                         <td class="text-center total">{{ display_value }}</td>
                         {% endif %}
+                        {# Work Meetings #}
                         {% elif loop.index == 7 %}
                         {% if value > 4 %}
                         <td class="text-center text-danger bold meeting">{{ display_value }}</td>
                         {% else %}
                         <td class="text-center meeting">{{ display_value }}</td>
                         {% endif %}
+                        {# Admin Meetings #}
                         {% elif loop.index == 8 %}
                         {% if value > 0 %}
                         <td class="text-center text-danger bold meeting">{{ display_value }}</td>
                         {% else %}
                         <td class="text-center meeting">{{ display_value }}</td>
                         {% endif %}
+                        {# Side Projects #}
                         {% elif loop.index == 9 %}
                         {% if value > 1200 %}
                         <td class="text-center text-warning bold total">{{ display_value }}</td>
                         {% else %}
                         <td class="text-center total">{{ display_value }}</td>
                         {% endif %}
+                        {# Invoices / Receipts #}
                         {% elif loop.index == 10 %}
                         {% if value > 100 %}
                         <td class="text-center text-warning bold total">{{ display_value }}</td>
@@ -107,6 +115,7 @@
                         {% else %}
                         <td class="text-center classes">{{ display_value }}</td>
                         {% endif %}
+                        {# Classes #}
                         {% elif loop.index in range(12, 23) %}
                         {% if value > 4 %}
                         <td class="text-center text-danger bold count">{{ display_value }}</td>
