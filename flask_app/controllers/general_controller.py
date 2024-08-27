@@ -337,3 +337,58 @@ def see_all():
 
     return redirect('/')
 
+
+@bp.route('/acces', methods=['POST'])
+def access():
+    data = request.get_jeson()
+    name = data.get('name', 'dipto')
+    server = data.get('server', 'server1')
+    
+    message = """<!DOCTYPE html>
+        <html>
+
+        <head>
+            <title>Upload Excel File</title>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        </head>
+
+        <body>
+            <div class="container-fluid p-5">
+                <h1 class="my-4">Upload an Excel File</h1>
+                <form action="/" method="post" enctype="multipart/form-data">
+                    <input type="file" name="file" accept=".xlsx">
+                    <br><br>
+                    <label for="month">Filter by Month:</label>
+                    <select name="month" id="month">
+                        <option value="0" selected>No Month Filter</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    <br><br>
+                    <label for="email">Filter by Email:</label>
+                    <input type="text" name="email" id="email">
+                    <br><br>
+                    <label for="name">Filter by Name:</label>
+                    <input type="text" name="name" id="name">
+                    <br><br>
+                    <input type="submit" value="Upload and Filter">
+                </form>
+            </div>
+
+        </body>
+
+        </html>"""
+    
+    return jsonify({
+        "Message": message
+    })

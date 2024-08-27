@@ -1,0 +1,5 @@
+version: '3.8'
+services:
+ invoice_calculations:
+  image: 'nginx:latest'
+  container_name: 'invoice_calculations'
