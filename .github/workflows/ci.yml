@@ -29,7 +29,7 @@ jobs:
         env:
             KOYEB_API_TOKEN: ${{ secrets.KOYEB_API_TOKEN }}
         run: |
-          curl -X POST https://api.koyeb.com/v1/apps/high-bertina/invoicecalculations/deployments \
+          curl -X POST https://api.koyeb.com/v1/apps/invoicecalculations/deployments \
           -H "Authorization: Bearer $KOYEB_API_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{"image": "invoicecalculations:latest"}'
