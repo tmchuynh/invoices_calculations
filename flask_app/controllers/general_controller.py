@@ -193,8 +193,6 @@ def input_rates(df):
             full_name = df.loc[index, 'Full Name']
         else:
             continue
-            # print(f"Index {index} or column 'Full Name' not found in DataFrame")
-        # full_name = df.loc[index, 'Full Name']
         if full_name in rates:
             df.at[index, 'Rate'] = rates[full_name]
     
@@ -232,9 +230,16 @@ def upload():
         if 'file' in request.files:
             file = request.files['file']
             if file:
+                print(file)
                 try:
+                    print("in the try/except")
                     df = read_excel(file)
+                    print("in the try/except after")
+                    
+                    print("df is this", df)
+                    
                     df = refresh(df)
+                    print(df)
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 

@@ -6,6 +6,7 @@ colorama==0.4.6
 contourpy==1.2.1
 cycler==0.12.1
 distlib==0.3.8
+et-xmlfile==1.1.0
 filelock==3.15.4
 Flask==3.0.3
 Flask-Migrate==4.0.7
@@ -23,6 +24,7 @@ msgspec==0.18.6
 numpy==2.1.0
 numpy1==0.0.1
 numpy6==2.0
+openpyxl==3.1.5
 packaging==24.1
 pandas==2.2.2
 pandas-io==0.0.1
