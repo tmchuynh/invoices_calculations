@@ -12,7 +12,19 @@ df_global = None
 
 def read_excel(file):
     df = pd.read_excel(file, engine='openpyxl', dtype=str)
+    for index in range(len(df)):
+        df['Full Name'] = df['Full Name'].astype('string')
+        df['Full Name'] = df['Full Name'].str.title()
+        
     return df
+
+
+def convert_to_string(value):
+    try:
+        return str(value)
+    except Exception as e:
+        print(f"Error converting value: {value} - {e}")
+        return ''
 
 
 def filter_by_month(df, column_name, month):
@@ -103,7 +115,7 @@ def rename_columns(df):
 
 
 def format_currency(df):
-    currency_columns = ['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts', 'Rate']
+    currency_columns = ['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts', 'Rate', 'OH Rate']
     for col in currency_columns:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -267,16 +279,9 @@ def upload():
         if 'file' in request.files:
             file = request.files['file']
             if file:
-                print(file)
                 try:
-                    print("in the try/except")
                     df = read_excel(file)
-                    print("in the try/except after")
-                    
-                    print("df is this", df)
-                    
                     df = refresh(df)
-                    print(df)
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
