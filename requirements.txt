@@ -1,9 +1,11 @@
 alembic==1.13.2
 blinker==1.8.2
 cachelib==0.13.0
+cffi==1.17.0
 click==8.1.7
 colorama==0.4.6
 contourpy==1.2.1
+cryptography==43.0.0
 cycler==0.12.1
 distlib==0.3.8
 et-xmlfile==1.1.0
@@ -30,6 +32,7 @@ pandas==2.2.2
 pandas-io==0.0.1
 pillow==10.4.0
 platformdirs==4.2.2
+pycparser==2.22
 PyMySQL==1.1.1
 pyparsing==3.1.4
 python-dateutil==2.9.0.post0
