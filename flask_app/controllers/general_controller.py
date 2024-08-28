@@ -167,7 +167,7 @@ def calculate_total(df):
 def calculate_meetings(df):
     # Define rates
     work_meeting_rate = 20
-    admin_meeting_rate = 35
+    admin_meeting_rate = 25
     
     # Ensure 'Calculated Total Amount' column exists
     if 'Calculated Total Amount' not in df.columns:
