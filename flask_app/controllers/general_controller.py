@@ -248,11 +248,14 @@ def input_rates(df):
 def calculate_classes(df):
     df = input_rates(df)
     
-    num_of_classes = df['Total # of Classes']
+    num_of_classes = df['Total # of Classes'] - df['Orchard Hills']
+    orchard = df['Orchard Hills']
     rate = df['Rate']
+    oh_rate = df['OH Rate']
     
     class_income = pd.Series(0, index=df.index)
     class_income += rate * num_of_classes
+    class_income += oh_rate * orchard
     
     df['Calculated Total Amount'] += class_income
     
