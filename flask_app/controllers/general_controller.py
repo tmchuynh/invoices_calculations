@@ -61,6 +61,8 @@ def convert_to_number(df):
     column_indices = [
         'Calculated Total Amount',
         'Instructor Provided Total',
+        'Rate',
+        'OH Rate',
         'Work Meetings',
         'Admin Meetings',
         'Side Projects',
@@ -264,9 +266,9 @@ def calculate_classes(df):
 
 
 def format_data(df):
-    df = df.fillna('0')
-    df = df.convert_dtypes()
+    # df = df.convert_dtypes()
     df = df.apply(lambda col: col.str.strip() if col.dtype == "string" else col)
+    df = df.fillna('0')
     
     working_columns = df.get(['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts'])
     working_columns = working_columns.map(lambda x: extract_and_sum_numbers(x))
@@ -293,7 +295,7 @@ def refresh(df):
         df['Timestamp'] = pd.to_datetime(df['Timestamp'])
         df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
     else:
-        df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d %H:%M:%S')
+        df['Date'] = pd.to_datetime(df['Date'])
         df['Date'] = df['Date'].dt.strftime('%b %d %y %I:%M:%S %p')
         
     df = rename_columns(df)
@@ -334,15 +336,17 @@ def upload():
                 new_url = convert_google_sheet_url(url)
                 df = pd.read_excel(new_url, engine='openpyxl', dtype=str)
                 
-                print(df.head())
-            
             df = refresh(df)
             df = format_data(df)
-                    
-            df.insert(8, 'Total # of Classes', 0)
-            df.insert(3, 'Rate', 0)
-            df.insert(4, 'OH Rate', 0)
-            df.insert(5, 'Calculated Total Amount', 0)
+            
+            if 'Total # of Classes' not in df.columns:
+                df.insert(8, 'Total # of Classes', 0)
+            if 'Rate' not in df.columns:
+                df.insert(3, 'Rate', 0)
+            if 'OH Rate' not in df.columns:
+                df.insert(4, 'OH Rate', 0)
+            if 'Calculated Total Amount' not in df.columns:
+                df.insert(5, 'Calculated Total Amount', 0)
 
             global df_global
             df_global = df
@@ -414,13 +418,11 @@ def results():
             # Create an Excel writer object
             with pd.ExcelWriter("IAC Invoice Form (Responses).xlsx", 
                         engine='xlsxwriter', 
-                        datetime_format='mmm d yyyy hh:mm:ss',
-                        date_format='mmmm dd yyyy', 
-                        engine_kwargs={'options': {'strings_to_numbers': True}}
+                        engine_kwargs={'options': {'strings_to_numbers': True}},
                     ) as writer: 
                 
                 # Write DataFrame to Excel
-                df.to_excel(writer, sheet_name="Instructor Invoices")
+                df.to_excel(writer, sheet_name="Instructor Invoices", index=False)
                 
                 workbook = writer.book
                 worksheet = writer.sheets["Instructor Invoices"]
@@ -443,15 +445,12 @@ def results():
                                 'value':     4,
                                 'format':    red_format}
                             )
-                
-                header_format = workbook.add_format({
-                        'bold': True,
-                        'text_wrap': True,
-                        'valign': 'top',
-                        'fg_color': '#D7E4BC',
-                        'border': 1
-                    })
-                worksheet.set_row(0, None, header_format) 
+                worksheet.conditional_format('H', 
+                                {'type':     'cell',
+                                'criteria': 'greater than',
+                                'value':     4,
+                                'format':    red_format}
+                            )
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df, numbers_df=numbers_df, zip=zip)
