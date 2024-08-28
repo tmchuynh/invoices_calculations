@@ -12,10 +12,6 @@ df_global = None
 
 def read_excel(file):
     df = pd.read_excel(file, engine='openpyxl', dtype=str)
-    for index in range(len(df)):
-        df['Full Name'] = df['Full Name'].astype('string')
-        df['Full Name'] = df['Full Name'].str.title()
-        
     return df
 
 
@@ -127,11 +123,16 @@ def format_currency(df):
     return df
 
 
+def remove_text(text):
+    numbers = re.findall(r'\d+\.?\d*', text)
+    
+    return numbers
+
 def sum_and_format_numbers(df, column_name):
     # Function to extract numbers and clean text
     def extract_and_sum_numbers(text):
         # Extract numbers and remove them from text
-        numbers = re.findall(r'\d+\.?\d*', text)
+        numbers = remove_text(text)
         # Convert extracted numbers to floats and sum them
         numbers = map(float, numbers)
         return sum(numbers)
@@ -262,6 +263,33 @@ def calculate_classes(df):
     return df
 
 
+def format_data(df):
+    column_names = ['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts']
+    
+    column_index = []
+
+    for col in column_names:
+        if col in df.columns:
+            col_index = df.columns.get_loc(col)
+            column_index.append(col_index)
+            print(column_index)
+
+                
+                
+
+    for index in range(len(df)):
+        df['Full Name'] = df['Full Name'].astype('string')
+        df['Email Address'] = df['Email Address'].astype('string')
+        
+        df['Full Name'] = df['Full Name'].str.title()
+        
+        df['Full Name'] = df['Full Name'].str.strip()
+        df['Email Address'] = df['Email Address'].str.strip()
+        df['Instructor Provided Total'] = df['Instructor Provided Total'].str.strip()
+    
+    return df
+
+
 def refresh(df):
     if 'Timestamp' in df.columns:
         df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
@@ -269,6 +297,9 @@ def refresh(df):
     else:
         df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d %H:%M:%S')
         df['Date'] = df['Date'].dt.strftime('%b %d %y %I:%M:%S %p')
+        
+    df = rename_columns(df)
+    df = format_data(df)
 
     return df
 
@@ -313,8 +344,6 @@ def results():
         # Check if no filters are applied
         if not any([month != '0', email, name]):
             return redirect('/results')  # Refresh the page
-        
-        df = rename_columns(df)
 
         if request.method == 'POST':
             # Apply filters if provided
