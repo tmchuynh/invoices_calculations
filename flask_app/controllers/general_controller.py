@@ -445,7 +445,7 @@ def results():
                                 'value':     4,
                                 'format':    red_format}
                             )
-                worksheet.conditional_format('H', 
+                worksheet.conditional_format('H1:H100', 
                                 {'type':     'cell',
                                 'criteria': 'greater than',
                                 'value':     4,
