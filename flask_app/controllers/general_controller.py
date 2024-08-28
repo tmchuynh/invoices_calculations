@@ -239,6 +239,8 @@ def input_rates(df):
             continue
         if full_name in rates:
             df.at[index, 'Rate'] = rates[full_name]
+        if full_name in oh_rates:
+            df.at[index, 'OH Rate'] = oh_rates[full_name]
     
     return df
 
