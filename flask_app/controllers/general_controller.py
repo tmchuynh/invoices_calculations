@@ -264,9 +264,9 @@ def calculate_classes(df):
 
 
 def format_data(df):
+    df = df.fillna('0')
     df = df.convert_dtypes()
     df = df.apply(lambda col: col.str.strip() if col.dtype == "string" else col)
-    df = df.fillna('0')
     
     working_columns = df.get(['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts'])
     working_columns = working_columns.map(lambda x: extract_and_sum_numbers(x))
@@ -290,7 +290,7 @@ def format_data(df):
 
 def refresh(df):
     if 'Timestamp' in df.columns:
-        df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S')
+        df['Timestamp'] = pd.to_datetime(df['Timestamp'])
         df['Timestamp'] = df['Timestamp'].dt.strftime('%b %d %y %I:%M:%S %p')
     else:
         df['Date'] = pd.to_datetime(df['Date'], format='%Y-%m-%d %H:%M:%S')
@@ -301,6 +301,23 @@ def refresh(df):
     return df
 
 
+def convert_google_sheet_url(url):
+    # https://docs.google.com/spreadsheets/d/1-vVRybivqBrzzrXAfl5ikMP-7wJrOK5KO8lofohFwoc/edit?gid=1688582025#gid=1688582025
+    # spreadsheet_id = 1-vVRybivqBrzzrXAfl5ikMP-7wJrOK5KO8lofohFwoc
+    # sheet_id = 1688582025
+    # Regular expression to match and capture the necessary part of the URL
+    pattern = r'https://docs\.google\.com/spreadsheets/d/([a-zA-Z0-9-_]+)(/edit#gid=(\d+)|/edit.*)?'
+
+    # Replace function to construct the new URL for CSV export
+    # If gid is present in the URL, it includes it in the export URL, otherwise, it's omitted
+    replacement = lambda m: f'https://docs.google.com/spreadsheets/d/{m.group(1)}/export?' + (f'gid={m.group(3)}&' if m.group(3) else '') + 'format=xlsx'
+
+    # Replace using regex
+    new_url = re.sub(pattern, replacement, url)
+
+    return new_url
+
+
 @bp.route('/', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
@@ -309,21 +326,30 @@ def upload():
             if file:
                 try:
                     df = read_excel(file)
-                    df = refresh(df)
-                    df = format_data(df)
-                    
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
-
-                df.insert(8, 'Total # of Classes', 0)
-                df.insert(3, 'Rate', 0)
-                df.insert(4, 'OH Rate', 0)
-                df.insert(5, 'Calculated Total Amount', 0)
-
-                global df_global
-                df_global = df
+            else:
+                url = 'https://docs.google.com/spreadsheets/d/1-vVRybivqBrzzrXAfl5ikMP-7wJrOK5KO8lofohFwoc/edit?gid=1688582025'
                 
-                return redirect('/results')
+                new_url = convert_google_sheet_url(url)
+                df = pd.read_excel(new_url, engine='openpyxl', dtype=str)
+                
+                print(df.head())
+            
+            df = refresh(df)
+            df = format_data(df)
+                    
+            df.insert(8, 'Total # of Classes', 0)
+            df.insert(3, 'Rate', 0)
+            df.insert(4, 'OH Rate', 0)
+            df.insert(5, 'Calculated Total Amount', 0)
+
+            global df_global
+            df_global = df
+                
+            return redirect('/results')
+
+                
     return render_template('upload.html')
 
 
@@ -390,8 +416,7 @@ def results():
                         engine='xlsxwriter', 
                         datetime_format='mmm d yyyy hh:mm:ss',
                         date_format='mmmm dd yyyy', 
-                        engine_kwargs={'options': {'strings_to_numbers': True}},
-                        index=False
+                        engine_kwargs={'options': {'strings_to_numbers': True}}
                     ) as writer: 
                 
                 # Write DataFrame to Excel
