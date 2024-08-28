@@ -45,3 +45,4 @@ typing_extensions==4.12.2
 tzdata==2024.1
 virtualenv==20.26.3
 Werkzeug==3.0.4
+XlsxWriter==3.2.0
