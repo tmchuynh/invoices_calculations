@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, Blueprint, redirect
 import re
+import xlsxwriter
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
@@ -373,14 +374,59 @@ def results():
             return render_template('results.html', table_html=table_html, df_global=df, numbers_df=numbers_df, zip=zip)
 
         elif request.method == 'GET':
+           
             # If GET request, show all data without filters
             # Iterate over each row and apply the addition function
             for index in range(len(df)):
                 df = addition(df, index)
+                
             df = convert_to_number(df)
             df = calculate_total(df)
             numbers_df = df.copy()
             df = format_currency(df)
+            
+            # Create an Excel writer object
+            with pd.ExcelWriter("IAC Invoice Form (Responses).xlsx", 
+                        engine='xlsxwriter', 
+                        datetime_format='mmm d yyyy hh:mm:ss',
+                        date_format='mmmm dd yyyy', 
+                        engine_kwargs={'options': {'strings_to_numbers': True}},
+                        index=False
+                    ) as writer: 
+                
+                # Write DataFrame to Excel
+                df.to_excel(writer, sheet_name="Instructor Invoices")
+                
+                workbook = writer.book
+                worksheet = writer.sheets["Instructor Invoices"]
+                
+                # Autofit columns
+                for col_num, col in enumerate(df.columns):
+                    max_length = max(df[col].astype(str).map(len).max(), len(col))
+                    worksheet.set_column(col_num, col_num, max_length + 2)  # Adding extra space for padding
+                
+                # Apply autofilter
+                max_row = len(df) + 1
+                max_col = len(df.columns)
+                worksheet.autofilter(0, 0, max_row, max_col - 1)
+                
+                red_format = workbook.add_format({'bg_color': '#ED254E', 'bold': True})
+                
+                worksheet.conditional_format('N1:Y100', 
+                                {'type':     'cell',
+                                'criteria': 'greater than',
+                                'value':     4,
+                                'format':    red_format}
+                            )
+                
+                header_format = workbook.add_format({
+                        'bold': True,
+                        'text_wrap': True,
+                        'valign': 'top',
+                        'fg_color': '#D7E4BC',
+                        'border': 1
+                    })
+                worksheet.set_row(0, None, header_format) 
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df, numbers_df=numbers_df, zip=zip)
