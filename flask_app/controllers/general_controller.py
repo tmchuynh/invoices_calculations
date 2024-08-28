@@ -123,20 +123,14 @@ def format_currency(df):
     return df
 
 
-def remove_text(text):
+def extract_and_sum_numbers(text):
+    # Extract numbers and remove them from text
     numbers = re.findall(r'\d+\.?\d*', text)
-    
-    return numbers
+    # Convert extracted numbers to floats and sum them
+    numbers = map(float, numbers)
+    return sum(numbers)
 
 def sum_and_format_numbers(df, column_name):
-    # Function to extract numbers and clean text
-    def extract_and_sum_numbers(text):
-        # Extract numbers and remove them from text
-        numbers = remove_text(text)
-        # Convert extracted numbers to floats and sum them
-        numbers = map(float, numbers)
-        return sum(numbers)
-    
     # Ensure the specified column exists in the DataFrame
     if column_name in df.columns:
         # Apply extraction and summing function to each row
@@ -264,20 +258,18 @@ def calculate_classes(df):
 
 
 def format_data(df):
-    column_names = ['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts']
+    df = df.convert_dtypes()
+    df = df.apply(lambda col: col.str.strip() if col.dtype == "string" else col)
+    df = df.fillna('0')
     
-    column_index = []
-
-    for col in column_names:
-        if col in df.columns:
-            col_index = df.columns.get_loc(col)
-            column_index.append(col_index)
-            print(column_index)
-
-                
-                
-
-    for index in range(len(df)):
+    working_columns = df.get(['Instructor Provided Total', 'Side Projects', 'Invoices/Receipts'])
+    working_columns = working_columns.map(lambda x: extract_and_sum_numbers(x))
+    
+    df['Instructor Provided Total'] = working_columns['Instructor Provided Total']
+    df['Side Projects'] = working_columns['Side Projects']
+    df['Invoices/Receipts'] = working_columns['Invoices/Receipts']
+    
+    for index in range(len(df)):     
         df['Full Name'] = df['Full Name'].astype('string')
         df['Email Address'] = df['Email Address'].astype('string')
         
@@ -285,7 +277,7 @@ def format_data(df):
         
         df['Full Name'] = df['Full Name'].str.strip()
         df['Email Address'] = df['Email Address'].str.strip()
-        df['Instructor Provided Total'] = df['Instructor Provided Total'].str.strip()
+        
     
     return df
 
@@ -299,7 +291,6 @@ def refresh(df):
         df['Date'] = df['Date'].dt.strftime('%b %d %y %I:%M:%S %p')
         
     df = rename_columns(df)
-    df = format_data(df)
 
     return df
 
@@ -313,12 +304,12 @@ def upload():
                 try:
                     df = read_excel(file)
                     df = refresh(df)
+                    df = format_data(df)
+                    
                 except Exception as e:
                     return render_template('upload.html', error=f"Error processing file: {str(e)}")
 
                 df.insert(8, 'Total # of Classes', 0)
-                df = df.apply(lambda col: col.str.strip() if col.dtype == "object" else col)
-                df = df.fillna('0')
                 df.insert(3, 'Rate', 0)
                 df.insert(4, 'OH Rate', 0)
                 df.insert(5, 'Calculated Total Amount', 0)
@@ -366,7 +357,6 @@ def results():
                 df = df.dropna(how='all')
                 df = addition(df, index)
                 
-            df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = convert_to_number(df)
             df = calculate_total(df)
             numbers_df = df.copy()
@@ -382,7 +372,6 @@ def results():
             # Iterate over each row and apply the addition function
             for index in range(len(df)):
                 df = addition(df, index)
-            df = sum_and_format_numbers(df, 'Any invoices/receipts?')
             df = convert_to_number(df)
             df = calculate_total(df)
             numbers_df = df.copy()
@@ -401,7 +390,6 @@ def see_all():
         # Iterate over each row and apply the addition function
         for index in range(len(df)):
             df = addition(df, index)
-        df = sum_and_format_numbers(df, 'Any invoices/receipts?')
         df = rename_columns(df)
         df = convert_to_number(df)
         df = calculate_total(df)
