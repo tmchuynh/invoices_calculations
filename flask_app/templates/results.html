@@ -11,11 +11,11 @@
 <body>
     <div class="container-fluid p-5">
         <h1 class="my-4">Filtered Excel File Data</h1>
-        <div class="d-flex container-fluid flex-column m-0 p-0">
-            <form action="/results" method="post" enctype="multipart/form-data">
+        <div class="d-flex container-fluid m-0 p-0">
+            <form action="/results" method="post" enctype="multipart/form-data" class="pe-4">
                 <div class="mb-3">
                     <label class="bold fs-5" for="month">Select Month:</label>
-                    <select class="form-select w-25" name="month" id="month" aria-label="Month Filter">
+                    <select class="form-select" name="month" id="month" aria-label="Month Filter">
                         <option value="0" selected>No Month Filter</option>
                         <option value="1">January</option>
                         <option value="2">February</option>
@@ -31,26 +31,30 @@
                         <option value="12">December</option>
                     </select>
                 </div>
-                <div class="input-group mb-3 w-25">
+                <div class="input-group mb-3">
                     <label class="input-group-text" for="email">Filter by Email:</label>
                     <input class="form-control" type="text" name="email" id="email"
                         value="{{ request.form.get('email', '') }}">
                 </div>
-                <div class="input-group mb-3 w-25">
+                <div class="input-group mb-3">
                     <label class="input-group-text" for="name">Filter by Name</label>
                     <input class="form-control" type="text" name="name" id="name"
                         value="{{ request.form.get('name', '') }}">
                 </div>
-                <input type="submit" value="Apply Filters" class="btn btn-primary">
+                <input type="submit" value="Apply Filters" class="btn btn-primary w-100">
             </form>
 
-            <div class="d-flex justify-content-between w-25">
-                <form action="/see_all" method="get" class="my-3">
-                    <input type="submit" value="See All" class="btn btn-primary">
+            <div class="d-flex justify-content-between flex-column w-25 mt-4 pt-2">
+                <form action="/see_all" method="get">
+                    <input type="submit" value="See All" class="btn btn-primary w-50">
+                </form>
+
+                <form action="/download" method="post">
+                    <input type="submit" value="Download Spreadsheet" class="btn btn-primary w-50">
                 </form>
 
                 <form action="/" method="get">
-                    <input type="submit" value="Back" class="btn btn-secondary">
+                    <input type="submit" value="Back" class="btn btn-secondary w-50">
                 </form>
             </div>
         </div>

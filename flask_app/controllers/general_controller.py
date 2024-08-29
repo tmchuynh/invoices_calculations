@@ -1,10 +1,10 @@
-from flask import Flask, request, render_template, Blueprint, redirect
+from flask import Flask, request, render_template, Blueprint, redirect, send_file
 import re
 import xlsxwriter
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
-from pandas.io.formats.style import Styler
+from io import BytesIO
 
 # Create a Blueprint
 bp = Blueprint('general', __name__)
@@ -132,6 +132,7 @@ def extract_and_sum_numbers(text):
     # Convert extracted numbers to floats and sum them
     numbers = map(float, numbers)
     return sum(numbers)
+
 
 def sum_and_format_numbers(df, column_name):
     # Ensure the specified column exists in the DataFrame
@@ -398,13 +399,13 @@ def results():
             numbers_df = df.copy()
             df = format_currency(df)
             
+            df_global = df.copy()
             
             # Convert to HTML table
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df, numbers_df=numbers_df, zip=zip)
 
         elif request.method == 'GET':
-           
             # If GET request, show all data without filters
             # Iterate over each row and apply the addition function
             for index in range(len(df)):
@@ -415,46 +416,69 @@ def results():
             numbers_df = df.copy()
             df = format_currency(df)
             
-            # Create an Excel writer object
-            with pd.ExcelWriter("IAC Invoice Form (Responses).xlsx", 
-                        engine='xlsxwriter', 
-                        engine_kwargs={'options': {'strings_to_numbers': True}},
-                    ) as writer: 
-                
-                # Write DataFrame to Excel
-                df.to_excel(writer, sheet_name="Instructor Invoices", index=False)
-                
-                workbook = writer.book
-                worksheet = writer.sheets["Instructor Invoices"]
-                
-                # Autofit columns
-                for col_num, col in enumerate(df.columns):
-                    max_length = max(df[col].astype(str).map(len).max(), len(col))
-                    worksheet.set_column(col_num, col_num, max_length + 2)  # Adding extra space for padding
-                
-                # Apply autofilter
-                max_row = len(df) + 1
-                max_col = len(df.columns)
-                worksheet.autofilter(0, 0, max_row, max_col - 1)
-                
-                red_format = workbook.add_format({'bg_color': '#ED254E', 'bold': True})
-                
-                worksheet.conditional_format('N1:Y100', 
-                                {'type':     'cell',
-                                'criteria': 'greater than',
-                                'value':     4,
-                                'format':    red_format}
-                            )
-                worksheet.conditional_format('H1:H100', 
-                                {'type':     'cell',
-                                'criteria': 'greater than',
-                                'value':     4,
-                                'format':    red_format}
-                            )
+            df_global = df.copy()
             
             table_html = df.to_html(classes='table table-striped', index=False, na_rep='', max_rows=None, max_cols=None)
             return render_template('results.html', table_html=table_html, df_global=df, numbers_df=numbers_df, zip=zip)
     return redirect('/')
+
+
+@bp.route('/download', methods=['POST'])
+def download():
+    global df_global
+    if df_global is not None:
+        df = df_global.copy()
+        
+        output = BytesIO()
+            
+        # Create an Excel writer object
+        with pd.ExcelWriter(output, 
+                    engine='xlsxwriter', 
+                    engine_kwargs={'options': {'strings_to_numbers': True}},
+                ) as writer: 
+            
+            # Write DataFrame to Excel
+            df.to_excel(writer, sheet_name="Instructor Invoices", index=False)
+            
+            workbook = writer.book
+            worksheet = writer.sheets["Instructor Invoices"]
+            
+            # Autofit columns
+            for col_num, col in enumerate(df.columns):
+                max_length = max(df[col].astype(str).map(len).max(), len(col))
+                worksheet.set_column(col_num, col_num, max_length + 2)  # Adding extra space for padding
+            
+            # Apply autofilter
+            max_row = len(df) + 1
+            max_col = len(df.columns)
+            worksheet.autofilter(0, 0, max_row, max_col - 1)
+            
+            red_format = workbook.add_format({'bg_color': '#ED254E', 'bold': True})
+            
+            worksheet.conditional_format('N1:Y100', 
+                            {'type':     'cell',
+                            'criteria': 'greater than',
+                            'value':     4,
+                            'format':    red_format}
+                        )
+            worksheet.conditional_format('H1:H100', 
+                            {'type':     'cell',
+                            'criteria': 'greater than',
+                            'value':     4,
+                            'format':    red_format}
+                        )
+        
+        output.seek(0)
+        
+        
+        # Get the current month as an abbreviated name (e.g., 'Aug')
+        current_month = pd.Timestamp.now().strftime('%b')
+        current_year = pd.Timestamp.now().strftime('%y')
+        file_name = f"IAC_Invoice_Form_Updated_{current_month}{current_year}.xlsx"
+        
+        # Send the file as a download
+        return send_file(output, as_attachment=True, download_name=file_name, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    return redirect('/results')
 
 
 @bp.route('/see_all', methods=['GET'])
