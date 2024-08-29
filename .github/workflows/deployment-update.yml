@@ -21,4 +21,4 @@ jobs:
                     -H "Authorization: token $GITHUB_TOKEN" \
                     -H "Accept: application/vnd.github.v3+json" \
                     https://api.github.com/repos/${{ github.repository }}/deployments \
-                    -d "{\"ref\":\"${{ github.ref_name }}\",\"environment\":\"production\",\"description\":\"Deployed to production\",\"auto_merge\":false,\"required_contexts\":[],\"payload\":{\"url\":\"https://yourwebsite.com\"}}"
+                    -d "{\"ref\":\"${{ github.ref_name }}\",\"environment\":\"production\",\"description\":\"Deployed to production\",\"auto_merge\":false,\"required_contexts\":[],\"payload\":{\"url\":\"https://high-bertina-tmchuynh-6e70f129.koyeb.app/\"}}"
