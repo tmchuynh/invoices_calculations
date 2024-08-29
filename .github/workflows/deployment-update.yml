@@ -15,7 +15,7 @@ jobs:
             
             - name: Create deployment
               env:
-                GITHUB_TOKEN: ${{ secrets.DEPLOYMENT_TOKEN }}
+                DEPLOYMENT_TOKEN: ${{ secrets.DEPLOYMENT_TOKEN }}
               run: |
                 curl -X POST \
                     -H "Authorization: token $GITHUB_TOKEN" \
